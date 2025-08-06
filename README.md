@@ -140,7 +140,7 @@ The system communicates with the VESC motor controller using:
 ## Getting Started
 
 ### Hardware Setup
-For complete wiring instructions and component connections, see [Wiring Guide](/_documentation/wiring.md).
+For complete wiring instructions and component connections, see [Wiring Guide](/_documentation/Wiring.md).
 
 ### Software Configuration
 1. Install PlatformIO IDE
