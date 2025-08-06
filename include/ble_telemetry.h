@@ -1,0 +1,122 @@
+#ifndef BLE_TELEMETRY_H
+#define BLE_TELEMETRY_H
+
+#include <Arduino.h>
+
+#ifdef ESP32
+  #include "freertos/FreeRTOS.h"
+  #include "freertos/task.h"
+  #include "freertos/semphr.h"
+  #include <BLEDevice.h>
+  #include <BLEServer.h>
+  #include <BLEUtils.h>
+  #include <BLE2902.h>
+  #include <ArduinoJson.h>
+#endif
+
+// BLE Configuration
+#define BLE_DEVICE_NAME "E-Bike-Controller"
+#define BLE_MANUFACTURER "OpenSource E-Bike"
+#define BLE_MODEL_NUMBER "ESP32-Controller-v1.0"
+#define BLE_FIRMWARE_VERSION "1.0.0"
+
+// BLE Service UUIDs (Custom UUIDs for E-Bike Controller)
+#define BLE_SERVICE_UUID_TELEMETRY     "12345678-1234-1234-1234-123456789abc"
+#define BLE_SERVICE_UUID_CONTROL       "12345678-1234-1234-1234-123456789def"
+#define BLE_SERVICE_UUID_DEVICE_INFO   "180A"  // Standard Device Information Service
+
+// Telemetry Characteristics UUIDs
+#define BLE_CHAR_UUID_SPEED            "12345678-1234-1234-1234-12345678a001"
+#define BLE_CHAR_UUID_CADENCE          "12345678-1234-1234-1234-12345678a002"
+#define BLE_CHAR_UUID_TORQUE           "12345678-1234-1234-1234-12345678a003"
+#define BLE_CHAR_UUID_BATTERY          "12345678-1234-1234-1234-12345678a004"
+#define BLE_CHAR_UUID_CURRENT          "12345678-1234-1234-1234-12345678a005"
+#define BLE_CHAR_UUID_VESC_DATA        "12345678-1234-1234-1234-12345678a006"
+#define BLE_CHAR_UUID_SYSTEM_STATUS    "12345678-1234-1234-1234-12345678a007"
+
+// Control Characteristics UUIDs
+#define BLE_CHAR_UUID_MODE_CONTROL     "12345678-1234-1234-1234-12345678b001"
+#define BLE_CHAR_UUID_MODE_LIST        "12345678-1234-1234-1234-12345678b002"
+#define BLE_CHAR_UUID_COMMAND          "12345678-1234-1234-1234-12345678b003"
+
+// Device Information Characteristics UUIDs (Standard)
+#define BLE_CHAR_UUID_MANUFACTURER     "2A29"
+#define BLE_CHAR_UUID_MODEL_NUMBER     "2A24"
+#define BLE_CHAR_UUID_FIRMWARE_REV     "2A26"
+
+// BLE Task Configuration
+#define BLE_UPDATE_RATE_MS 2000         // 0.5Hz für BLE Telemetrie (weniger frequent als WiFi)
+#define BLE_TASK_STACK_SIZE 4096
+#define BLE_TASK_PRIORITY 1             // Niedrige Priorität auf Core 1
+
+// BLE Data Structures
+struct BLETelemetryData {
+    float speed;
+    float cadence;
+    float torque;
+    float battery_percentage;
+    float motor_current;
+    uint8_t current_mode;
+    bool motor_enabled;
+    uint32_t timestamp;
+};
+
+struct BLEVescData {
+    float motor_rpm;
+    float duty_cycle;
+    float temp_mosfet;
+    float temp_motor;
+    float battery_voltage;
+    float amp_hours;
+    float watt_hours;
+};
+
+// BLE Server callbacks
+class EBikeServerCallbacks : public BLEServerCallbacks {
+public:
+    void onConnect(BLEServer* pServer) override;
+    void onDisconnect(BLEServer* pServer) override;
+};
+
+// BLE Characteristic callbacks for mode control
+class EBikeModeControlCallbacks : public BLECharacteristicCallbacks {
+public:
+    void onWrite(BLECharacteristic* pCharacteristic) override;
+};
+
+// BLE Characteristic callbacks for commands
+class EBikeCommandCallbacks : public BLECharacteristicCallbacks {
+public:
+    void onWrite(BLECharacteristic* pCharacteristic) override;
+};
+
+// BLE task function
+void bleTelemetryTask(void *pvParameters);
+
+// Setup function to create BLE task
+void setupBLETelemetry();
+
+// BLE control functions
+void updateBLETelemetryData();
+void updateBLEVescData();
+void sendBLEModeList();
+
+// Global declarations for external access
+extern TaskHandle_t bleTaskHandle;
+extern BLEServer* pBLEServer;
+extern bool bleDeviceConnected;
+extern bool bleOldDeviceConnected;
+
+// BLE Characteristics (global for access from callbacks)
+extern BLECharacteristic* pCharSpeed;
+extern BLECharacteristic* pCharCadence;
+extern BLECharacteristic* pCharTorque;
+extern BLECharacteristic* pCharBattery;
+extern BLECharacteristic* pCharCurrent;
+extern BLECharacteristic* pCharVescData;
+extern BLECharacteristic* pCharSystemStatus;
+extern BLECharacteristic* pCharModeControl;
+extern BLECharacteristic* pCharModeList;
+extern BLECharacteristic* pCharCommand;
+
+#endif // BLE_TELEMETRY_H
