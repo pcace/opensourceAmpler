@@ -33,6 +33,9 @@
 #define BLE_CHAR_UUID_CURRENT          "12345678-1234-1234-1234-12345678a005"
 #define BLE_CHAR_UUID_VESC_DATA        "12345678-1234-1234-1234-12345678a006"
 #define BLE_CHAR_UUID_SYSTEM_STATUS    "12345678-1234-1234-1234-12345678a007"
+#define BLE_CHAR_UUID_POWER_DATA       "12345678-1234-1234-1234-12345678a008"
+#define BLE_CHAR_UUID_TEMPERATURES     "12345678-1234-1234-1234-12345678a009"
+#define BLE_CHAR_UUID_COMPLETE_TELEMETRY "12345678-1234-1234-1234-12345678a010"
 
 // Control Characteristics UUIDs
 #define BLE_CHAR_UUID_MODE_CONTROL     "12345678-1234-1234-1234-12345678b001"
@@ -51,24 +54,48 @@
 
 // BLE Data Structures
 struct BLETelemetryData {
-    float speed;
-    float cadence;
-    float torque;
-    float battery_percentage;
-    float motor_current;
-    uint8_t current_mode;
-    bool motor_enabled;
+    // Basic sensor data
+    float speed;                    // current_speed_kmh
+    float cadence;                  // current_cadence_rpm  
+    float torque;                   // filtered_torque
+    float raw_torque;               // raw_torque_value
+    
+    // Power and current
+    float human_power;              // human_power_watts
+    float assist_power;             // assist_power_watts
+    float motor_current_target;     // target_current_amps
+    float motor_current_actual;     // actual_current_amps
+    float motor_rpm;                // current_motor_rpm
+    
+    // Battery data
+    float battery_voltage;          // battery_voltage
+    float battery_percentage;       // battery_percentage
+    bool battery_low;               // battery_low
+    bool battery_critical;          // battery_critical
+    
+    // System status
+    uint8_t current_mode;           // current_mode
+    bool motor_enabled;             // motor_enabled
+    bool light_on;                  // lightOn
+    bool vesc_data_valid;           // vesc_data_valid
+    float dynamic_assist_factor;    // dynamic_assist_factor
+    
     uint32_t timestamp;
 };
 
 struct BLEVescData {
-    float motor_rpm;
-    float duty_cycle;
-    float temp_mosfet;
-    float temp_motor;
-    float battery_voltage;
-    float amp_hours;
-    float watt_hours;
+    float motor_rpm;                // sharedVescData.rpm (eRPM)
+    float duty_cycle;               // sharedVescData.duty_cycle
+    float temp_mosfet;              // sharedVescData.temp_mosfet
+    float temp_motor;               // sharedVescData.temp_motor
+    float battery_voltage;          // sharedVescData.battery_voltage
+    float battery_percentage;       // sharedVescData.battery_percentage
+    float amp_hours;                // sharedVescData.amp_hours
+    float watt_hours;               // sharedVescData.watt_hours
+    float actual_current;           // sharedVescData.actual_current
+    float speed_kmh;                // sharedVescData.speed_kmh
+    bool data_valid;                // sharedVescData.data_valid
+    uint32_t last_update;           // sharedVescData.last_update
 };
 
 // BLE Server callbacks
@@ -115,6 +142,9 @@ extern BLECharacteristic* pCharBattery;
 extern BLECharacteristic* pCharCurrent;
 extern BLECharacteristic* pCharVescData;
 extern BLECharacteristic* pCharSystemStatus;
+extern BLECharacteristic* pCharPowerData;
+extern BLECharacteristic* pCharTemperatures;
+extern BLECharacteristic* pCharCompleteTelemetry;
 extern BLECharacteristic* pCharModeControl;
 extern BLECharacteristic* pCharModeList;
 extern BLECharacteristic* pCharCommand;
