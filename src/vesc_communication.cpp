@@ -54,6 +54,7 @@ void update_vesc_data() {
     
     // eRPM → motor revolutions → wheel revolutions → speed
     float motor_rpm = erpm / pole_pairs;
+    current_motor_rpm = motor_rpm;
     float wheel_rpm = motor_rpm / MOTOR_GEAR_RATIO;
     float wheel_circumference_m = PI * WHEEL_DIAMETER_M;
     

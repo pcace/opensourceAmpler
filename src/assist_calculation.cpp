@@ -57,6 +57,17 @@ void calculate_speed_dependent_assist() {
 // =============================================================================
 // POWER CALCULATION
 // =============================================================================
+// PROBLEM: Previous code calculated battery current (P/U_battery) but sent it
+// as motor current to VESC. This caused mechanical power to increase linearly
+// with speed since motor torque = motor_constant × motor_current.
+// 
+// SOLUTION: Calculate correct motor current for desired mechanical power:
+// I_motor = P_mechanical / (K_t × ω_motor)
+// This ensures constant mechanical power regardless of motor speed.
+//
+// source: https://endless-sphere.com/sphere/threads/planning-software-hardware-for-a-controller-replacement-vesc.128244/#post-1860786
+//
+// =============================================================================
 
 void calculate_assist_power() {
   // 1. CALCULATE HUMAN POWER
@@ -80,9 +91,30 @@ void calculate_assist_power() {
   }
   
   // 5. CALCULATE TARGET MOTOR CURRENT
-  // P = U × I  →  I = P / U
-  if (assist_power_watts > 0 && VOLTAGE_BATTERY > 0) {
+  // Thanks to https://endless-sphere.com/sphere/threads/planning-software-hardware-for-a-controller-replacement-vesc.128244/#post-1860786
+  // Motor torque is proportional to motor current: T = K_t × I_motor
+  // Mechanical power: P_mech = T × ω = K_t × I_motor × ω
+  // Therefore: I_motor = P_mech / (K_t × ω)
+  
+  if (assist_power_watts > 0 && current_motor_rpm > 10.0) {
+    // Use motor RPM for correct motor current calculation
+    // Approximate motor constant for Q100C motor (empirically determined)
+    // This ensures constant mechanical power regardless of speed
+    float motor_rps = current_motor_rpm / 60.0;  // Convert RPM to RPS
+    float motor_omega = motor_rps * 2.0 * PI;     // Angular velocity [rad/s]
+    
+    // Motor constant for Q100C (defined in ebike_controller.h)
+    // Calculated from Q100C specifications: 36V/350W nominal
+    // K_t = 0.12 Nm/A (torque constant independent of voltage)
+    float motor_constant_kt = MOTOR_CONSTANT_KT;
+    
+    target_current_amps = assist_power_watts / (motor_constant_kt * motor_omega);
+    
+  } else if (assist_power_watts > 0 && current_motor_rpm <= 10.0) {
+    // Low speed: Use simplified calculation (avoid division by near-zero)
+    // At very low speeds, use voltage-based calculation as fallback
     target_current_amps = assist_power_watts / VOLTAGE_BATTERY;
+    
   } else {
     target_current_amps = 0.0;
   }
@@ -99,9 +131,9 @@ void calculate_assist_power() {
   static unsigned long last_power_debug = 0;
   unsigned long now = millis();
   if (now - last_power_debug > 2000) { // Every 2 seconds
-    Serial.printf("POWER CALC - Torque:%.1fNm Cadence:%.1fRPM Human:%.0fW Factor:%.2f Assist:%.0fW Current:%.2fA\n", 
+    Serial.printf("POWER CALC - Torque:%.1fNm Cadence:%.1fRPM Human:%.0fW Factor:%.2f Assist:%.0fW MotorRPM:%.0f Current:%.2fA\n", 
                   filtered_torque, current_cadence_rpm, human_power_watts, 
-                  dynamic_assist_factor, assist_power_watts, target_current_amps);
+                  dynamic_assist_factor, assist_power_watts, current_motor_rpm, target_current_amps);
     last_power_debug = now;
   }
 }

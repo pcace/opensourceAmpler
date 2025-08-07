@@ -142,6 +142,7 @@ float filtered_torque = 0.0;
 
 // Speed and assist
 float current_speed_kmh = 0.0;
+float current_motor_rpm = 0.0;
 float dynamic_assist_factor = 1.0;
 bool vesc_data_valid = false;
 

@@ -66,6 +66,14 @@
 #define MOTOR_POLES         16     // Number of poles (16 poles = 8 pole pairs)
 #define WHEEL_DIAMETER_M    0.72   // 28" = 720mm diameter
 
+// Motor constants for Q100C at 48V operation (scaled from 36V nominal)
+// Q100C nominal: 36V/350W, 201 wheel RPM → at 48V: 268 wheel RPM (48/36 × 201)
+// K_t calculation: 350W @ 36V = 9.72A, 2854 motor RPM → K_t = 0.12 Nm/A
+// Note: Torque constant K_t is independent of voltage, only speed scales
+#define MOTOR_CONSTANT_KT   0.12   // Torque constant [Nm/A] - from Q100C specifications
+#define MOTOR_NOMINAL_WHEEL_RPM_36V  201  // Q100C nominal wheel RPM at 36V
+#define MOTOR_NOMINAL_WHEEL_RPM_48V  268  // Q100C nominal wheel RPM at 48V (201×48/36)
+
 // =============================================================================
 // FREERTOS MULTI-CORE DECLARATIONS
 // =============================================================================
@@ -184,6 +192,7 @@ extern float filtered_torque;         // Filtered torque
 
 // Speed and assist
 extern float current_speed_kmh;       // Current speed [km/h]
+extern float current_motor_rpm;       // Current motor RPM (for motor current calculation)
 extern float dynamic_assist_factor;   // Current assist factor
 extern bool vesc_data_valid;          // VESC data valid?
 

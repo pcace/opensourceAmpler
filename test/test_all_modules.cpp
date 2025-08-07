@@ -20,6 +20,7 @@ float ASSIST_PROFILES[3][NUM_SPEED_POINTS] = {
     {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}  // Linear mode
 };
 float current_speed_kmh = 0.0;
+float current_motor_rpm = 0.0;
 int current_mode = 0;
 bool vesc_data_valid = true;
 float dynamic_assist_factor = 1.0;
