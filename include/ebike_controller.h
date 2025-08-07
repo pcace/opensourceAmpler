@@ -66,11 +66,12 @@
 #define MOTOR_POLES         16     // Number of poles (16 poles = 8 pole pairs)
 #define WHEEL_DIAMETER_M    0.72   // 28" = 720mm diameter
 
-// Motor constants for Q100C at 48V operation (scaled from 36V nominal)
-// Q100C nominal: 36V/350W, 201 wheel RPM → at 48V: 268 wheel RPM (48/36 × 201)
-// K_t calculation: 350W @ 36V = 9.72A, 2854 motor RPM → K_t = 0.12 Nm/A
-// Note: Torque constant K_t is independent of voltage, only speed scales
-#define MOTOR_CONSTANT_KT   0.12   // Torque constant [Nm/A] - from Q100C specifications
+// Motor constants for Q100C at 48V operation (from performance curve data)
+// Real measured data from Q100C performance curve (July 2013):
+// Max efficiency: 7.17 Nm @ 5.28 A → K_t = 1.36 Nm/A
+// Max torque: 20.04 Nm @ 13.37 A → K_t = 1.50 Nm/A
+// Average motor constant: K_t ≈ 1.43 Nm/A
+#define MOTOR_CONSTANT_KT   1.43   // Torque constant [Nm/A] - from Q100C performance data
 #define MOTOR_NOMINAL_WHEEL_RPM_36V  201  // Q100C nominal wheel RPM at 36V
 #define MOTOR_NOMINAL_WHEEL_RPM_48V  268  // Q100C nominal wheel RPM at 48V (201×48/36)
 

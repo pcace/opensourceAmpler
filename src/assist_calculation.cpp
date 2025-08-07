@@ -104,8 +104,10 @@ void calculate_assist_power() {
     float motor_omega = motor_rps * 2.0 * PI;     // Angular velocity [rad/s]
     
     // Motor constant for Q100C (defined in ebike_controller.h)
-    // Calculated from Q100C specifications: 36V/350W nominal
-    // K_t = 0.12 Nm/A (torque constant independent of voltage)
+    // Based on real performance curve data from Q100C motor:
+    // Max efficiency: 7.17 Nm @ 5.28 A → K_t = 1.36 Nm/A
+    // Max torque: 20.04 Nm @ 13.37 A → K_t = 1.50 Nm/A
+    // Average: K_t = 1.43 Nm/A (much more accurate than calculated estimate)
     float motor_constant_kt = MOTOR_CONSTANT_KT;
     
     target_current_amps = assist_power_watts / (motor_constant_kt * motor_omega);
