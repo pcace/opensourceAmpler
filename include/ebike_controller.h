@@ -32,11 +32,11 @@
 
 // Torque sensor calibration (corrected values after GND connection)
 #define TORQUE_SENSOR_PIN   36     // Analog pin for torque sensor on ESP32 (ADC1_CH0, SVP)
-#define TORQUE_STANDSTILL   2880   // ADC value at neutral position (ESP32: 12-bit ADC = 0-4095, 3.3V)
+#define TORQUE_STANDSTILL   2055   // ADC value at neutral position (ESP32: 12-bit ADC = 0-4095, 3.3V)
 #define TORQUE_MAX_FORWARD  4095   // ADC value at maximum forward torque
 #define TORQUE_MAX_BACKWARD 0      // ADC value at maximum backward torque  
 #define TORQUE_MAX_NM       300.0  // Maximum torque [Nm] - Updated based on 60kg@175mm test (103Nm real)
-#define TORQUE_THRESHOLD    30     // Minimum deviation from standstill for valid signal (~3Nm sensitivity)
+#define TORQUE_THRESHOLD    20     // Minimum deviation from standstill for valid signal (~3Nm sensitivity)
 
 // PAS sensor configuration
 #define PAS_PULSES_PER_REV  8      // 8 Pulses per revolution on each pin (corrected)
