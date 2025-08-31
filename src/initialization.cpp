@@ -24,6 +24,12 @@ void ebike_setup() {
   attachInterrupt(digitalPinToInterrupt(PAS_PIN_A), pas_interrupt_handler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PAS_PIN_B), pas_interrupt_handler, CHANGE);
   
+  // *** TORQUE SENSOR CALIBRATION ***
+  // Calibrate torque sensor neutral position on every startup
+  // This eliminates drift and ensures accurate zero-point detection
+  Serial.println("=== STARTING TORQUE SENSOR CALIBRATION ===");
+  calibrate_torque_sensor();
+  
   // Set initial values
   last_loop_time = millis();
   last_pedal_activity = millis();

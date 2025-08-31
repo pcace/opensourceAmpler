@@ -18,11 +18,11 @@ Hauptservice für alle E-Bike Telemetriedaten.
 
 | Characteristic | UUID | Type | Format | Beschreibung |
 |----------------|------|------|--------|-------------|
-| Speed | ...a001 | Read/Notify | Float (4 bytes) | Geschwindigkeit in km/h |
-| Cadence | ...a002 | Read/Notify | Float (4 bytes) | Trittfrequenz in RPM |
-| Torque | ...a003 | Read/Notify | Float (4 bytes) | Drehmomnet in Nm |
-| Battery | ...a004 | Read/Notify | UInt8 (1 byte) | Batteriestand in % |
-| Motor Current | ...a005 | Read/Notify | Float (4 bytes) | Motorstrom in A |
+| Speed | ...a001 | Read/Notify | UInt16 (2 bytes) | Geschwindigkeit in 0.1 km/h (z.B. 254 = 25.4 km/h) |
+| Cadence | ...a002 | Read/Notify | UInt8 (1 byte) | Trittfrequenz in RPM (0-255) |
+| Torque | ...a003 | Read/Notify | UInt16 (2 bytes) | Drehmoment in 0.01 Nm (z.B. 350 = 3.50 Nm) |
+| Battery | ...a004 | Read/Notify | UInt8 (1 byte) | Batteriestand in % (0-100) |
+| Motor Current | ...a005 | Read/Notify | UInt16 (2 bytes) | Motorstrom in 0.01 A (z.B. 1250 = 12.50 A) |
 | VESC Data | ...a006 | Read/Notify | JSON String | Erweiterte VESC-Daten |
 | System Status | ...a007 | Read/Notify | JSON String | Systemstatus und Mode |
 
@@ -84,6 +84,29 @@ Service für Steuerung und Kontrolle des E-Bikes.
 - `GET_MODES` - Mode-Liste anfordern
 - `EMERGENCY_STOP` - Notfall-Stop (wechselt zu "No Assist" Mode)
 
+## Datenformat-Details
+
+### Integer-Formate (Little Endian)
+Alle Integer-Werte werden im Little Endian Format übertragen:
+- **UInt8**: Direkter Byte-Wert (0-255)
+- **UInt16**: 2 Bytes, niedriges Byte zuerst
+  - Beispiel: Wert 1234 → Bytes [0xD2, 0x04]
+  - Dekodierung: `value = byte[0] | (byte[1] << 8)`
+
+### Skalierungsfaktoren
+- **Speed**: Faktor 10 (0.1 km/h Auflösung, max 6553.5 km/h)
+- **Torque**: Faktor 100 (0.01 Nm Auflösung, max 655.35 Nm)  
+- **Current**: Faktor 100 (0.01 A Auflösung, max 655.35 A)
+- **Cadence**: Direkter Wert (1 RPM Auflösung, max 255 RPM)
+- **Battery**: Direkter Wert (1% Auflösung, 0-100%)
+
+### Warum Integer statt Float?
+Integer-Formate sind:
+- **Kompatibel** mit den meisten BLE-Apps
+- **Effizienter** bei der Übertragung
+- **Einfacher** zu dekodieren in mobilen Apps
+- **Präzise** genug für E-Bike-Anwendungen
+
 ## Verbindungsbeispiel (Android/Kotlin)
 
 ```kotlin
@@ -99,6 +122,18 @@ val MODE_CONTROL_CHAR_UUID = UUID.fromString("12345678-1234-1234-1234-12345678b0
 val speedCharacteristic = gatt.getService(TELEMETRY_SERVICE_UUID)
     .getCharacteristic(SPEED_CHAR_UUID)
 gatt.setCharacteristicNotification(speedCharacteristic, true)
+
+// Speed-Wert auslesen (UInt16 Little Endian)
+override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+    when (characteristic.uuid) {
+        SPEED_CHAR_UUID -> {
+            val speedRaw = characteristic.value
+            val speedValue = ((speedRaw[1].toInt() and 0xFF) shl 8) or (speedRaw[0].toInt() and 0xFF)
+            val speedKmh = speedValue / 10.0f  // Convert to km/h
+            Log.d("BLE", "Speed: $speedKmh km/h")
+        }
+    }
+}
 
 // Mode wechseln (Beispiel: Mode 2)
 val modeCharacteristic = gatt.getService(CONTROL_SERVICE_UUID)
@@ -122,6 +157,27 @@ let modeControlCharUUID = CBUUID(string: "12345678-1234-1234-1234-12345678b001")
 if let speedChar = peripheral.services?.first(where: { $0.uuid == telemetryServiceUUID })?
     .characteristics?.first(where: { $0.uuid == speedCharUUID }) {
     peripheral.setNotifyValue(true, for: speedChar)
+}
+
+// Speed-Wert auslesen (UInt16 Little Endian)
+func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    guard let data = characteristic.value else { return }
+    
+    switch characteristic.uuid {
+    case speedCharUUID:
+        let speedRaw = UInt16(data[0]) | (UInt16(data[1]) << 8)  // Little Endian
+        let speedKmh = Float(speedRaw) / 10.0  // Convert to km/h
+        print("Speed: \(speedKmh) km/h")
+        
+    case cadenceCharUUID:
+        let cadenceRpm = UInt8(data[0])
+        print("Cadence: \(cadenceRpm) RPM")
+        
+    case torqueCharUUID:
+        let torqueRaw = UInt16(data[0]) | (UInt16(data[1]) << 8)
+        let torqueNm = Float(torqueRaw) / 100.0  // Convert to Nm
+        print("Torque: \(torqueNm) Nm")
+    }
 }
 
 // Mode wechseln (Beispiel: Mode 2)

@@ -32,13 +32,13 @@ AssistProfile AVAILABLE_PROFILES[] = {
     "linear profile", 
     true,
     {1, 1, 1, 1, 1, 1}
+  },
+  {
+    "Touring Eco", 
+    "Like Touring but ~40% reduced for better range and efficiency", 
+    true,
+    {1.8, 1.2, 1.0, 0.8, 0.7, 0.5}
   }
-  // {
-  //   "Touring Eco", 
-  //   "Like Touring but ~40% reduced for better range and efficiency", 
-  //   true,
-  //   {1.8, 1.2, 1.0, 0.8, 0.7, 0.5}
-  // }
 
 
   // Uncomment the profiles you want to use:
@@ -49,12 +49,12 @@ AssistProfile AVAILABLE_PROFILES[] = {
   //   {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
   // },
   
-  /*{
-    "Touring", 
-    "Fast start-up, gentle slope to 30km/h - good for touring with luggage", 
-    false,
-    {2.9, 2.15, 1.75, 1.4, 1.2, 0.8}
-  },*/
+  // /*{
+  //   "Touring", 
+  //   "Fast start-up, gentle slope to 30km/h - good for touring with luggage", 
+  //   false,
+  //   {2.9, 2.15, 1.75, 1.4, 1.2, 0.8}
+  // },*/
   
   /*{
     "Mountain Bike", 
@@ -139,6 +139,11 @@ float current_cadence_rps = 0.0;
 int raw_torque_value = 0;
 float crank_torque_nm = 0.0;
 float filtered_torque = 0.0;
+
+// Torque sensor calibration variables
+int torque_standstill_calibrated = TORQUE_STANDSTILL_DEFAULT;  // Start with default value
+bool torque_calibration_complete = false;                     // Calibration not done yet
+int torque_calibration_count = 0;                             // Sample counter
 
 // Speed and assist
 float current_speed_kmh = 0.0;

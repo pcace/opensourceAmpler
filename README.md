@@ -147,12 +147,12 @@ For complete wiring instructions and component connections, see [Wiring Guide](/
 2. Clone this repository
 3. Configure your specific motor and battery parameters in `include/ebike_controller.h`
 4. Configure telemetry interfaces in `src/config.cpp`:
-   - Set `enable_wifi_telemetry = true;` for WiFi web interface
+   - Set `enable_wifi_telemetry = true;` for minimalist WiFi web interface
    - Set `enable_ble_telemetry = true;` for BLE mobile interface
    - Both can be enabled simultaneously (requires huge_app partition)
 5. Upload firmware to ESP32
 
-**Memory Requirements**: WiFi + BLE requires ~1.6MB flash memory. The project uses `huge_app.csv` partition (3.1MB app space) to accommodate both interfaces. If you experience memory issues, disable one interface in `config.cpp`.
+**Memory Requirements**: The minimalist WiFi interface is optimized for memory efficiency. WiFi + BLE together requires ~1.2MB flash memory (reduced from previous 1.6MB). The project uses `huge_app.csv` partition (3.1MB app space) to accommodate both interfaces comfortably. The simplified WiFi implementation significantly reduces memory pressure and improves overall system stability.
 
 ## Code Structure
 
@@ -178,7 +178,11 @@ src/
 - ✅ **User Friendly**: Simple mode switching with LED feedback
 - ✅ **Diagnostic Tools**: Comprehensive debug output and monitoring
 - ✅ **Safety First**: Multiple protection layers and fail-safes
+- ✅ **Memory Optimized**: Minimalist WiFi interface for maximum stability
+- ✅ **Dual Interface**: WiFi web monitoring + BLE mobile connectivity
 - ✅ **Open Source**: Fully documented and customizable
+
+**Note**: The WiFi web interface has been optimized for stability and memory efficiency. It now provides essential monitoring data only (speed, battery, torque, mode) through a simplified interface designed for reliable operation on ESP32 hardware.
 
 ## Debug Mode
 
@@ -224,28 +228,23 @@ The debug output shows:
 
 ## WiFi Web Interface
 
-The E-bike controller includes a comprehensive WiFi web interface for real-time monitoring and control. When enabled, the ESP32 creates a WiFi access point allowing you to connect and monitor your E-bike via any web browser.
-
-<img src="/_documentation/webinterface.png" alt="Web Interface Screenshot" width="600">
+The E-bike controller includes a minimalist WiFi web interface optimized for memory efficiency and stability. When enabled, the ESP32 creates a WiFi access point allowing you to monitor your E-bike via any web browser with essential information only.
 
 ### Web Interface Features
 
-**Real-time Telemetry Dashboard**
-- **Main Metrics**: Speed (km/h), Cadence (RPM), Torque (Nm), Battery level (%), Motor current (A), Active assist mode
-- **VESC Status**: Motor RPM, Duty cycle (%), MOSFET temperature (°C), Motor temperature (°C), Battery voltage (V), Amp hours consumed (Ah), Watt hours consumed (Wh)
-- **Live Updates**: Automatic refresh every 2 seconds for responsive monitoring
+**Minimalist Real-time Dashboard**
+- **Essential Metrics Only**: Speed (km/h), Battery level (%), Torque (Nm), Active assist mode
+- **Simplified Layout**: Clean, mobile-optimized interface with large, readable values
+- **Low Memory Footprint**: Optimized for ESP32 stability with minimal resource usage
+- **Manual Refresh**: Single refresh button to update all values on demand
+- **Auto-refresh**: Automatic updates every 5 seconds to reduce system load
 
-**Assist Mode Control**
-- **Interactive Mode Switching**: Click buttons to change between assist profiles (Touring, Mountain Bike, Urban, Speed, etc.)
-- **Visual Mode Indication**: Current active mode is highlighted in red
-- **Mode Descriptions**: Hover tooltips show profile characteristics
-- **Instant Feedback**: Mode changes are applied immediately with confirmation
-
-**System Logging**
-- **Real-time Log Display**: Live system messages and status updates
-- **Event Tracking**: Mode changes, sensor states, warnings, and system events
-- **Scrollable History**: Last 20 log messages with timestamps
-- **Auto-refresh**: Log updates every 5 seconds
+**Key Design Principles**
+- **Stability First**: Extremely simple implementation to prevent memory issues and crashes
+- **Essential Data Only**: Shows only the most important riding information
+- **Mobile Optimized**: Large text and buttons for easy reading while riding
+- **Low Bandwidth**: Minimal data transfer for reliable connection
+- **No Complex Features**: Removed logging, detailed VESC data, and mode switching to ensure stability
 
 ### WiFi Configuration
 
@@ -255,6 +254,7 @@ The E-bike controller includes a comprehensive WiFi web interface for real-time 
 - **IP Address**: `192.168.4.1`
 - **Port**: 80 (HTTP)
 - **Max Connections**: 4 devices simultaneously
+- **Channel**: 6 (optimized for better connection stability)
 
 ### How to Access
 
@@ -262,25 +262,39 @@ The E-bike controller includes a comprehensive WiFi web interface for real-time 
 2. **Upload firmware** to ESP32
 3. **Connect device** to WiFi network "E-Bike-Controller" (password: ebike123)
 4. **Open browser** and navigate to `http://192.168.4.1`
-5. **Monitor and control** your E-bike in real-time
+5. **Monitor** essential E-bike data with a simple, reliable interface
 
 ### Technical Implementation
 
-The web interface runs as a separate FreeRTOS task on Core 1 with low priority to avoid interfering with critical motor control functions. It uses:
+The minimalist web interface is designed for maximum stability:
 
-- **Thread-safe data access** with semaphores for shared sensor data
-- **JSON API endpoints** for telemetry data, logs, and mode control
-- **Responsive design** that works on smartphones, tablets, and desktops
-- **Minimal bandwidth usage** with efficient data structures
-- **Real-time updates** without page refreshing using AJAX
+- **Single API Endpoint**: Only `/status` endpoint providing essential data (speed, battery, torque, mode)
+- **No Logging System**: Removed all logging functionality to save memory
+- **Simplified HTML**: Minimal CSS and JavaScript for fast loading and low memory usage
+- **Reduced Stack Size**: WiFi task uses only 8KB stack (reduced from 16KB)
+- **Thread-safe Data Access**: Semaphore-protected access to shared sensor data
+- **Error Recovery**: Automatic WiFi Access Point restart if connection fails
+- **Low Update Rate**: 2-second intervals to reduce system load
+
+### Memory Optimization
+
+**What was removed for stability:**
+- System logging and log display
+- Detailed VESC telemetry (temperatures, voltages, etc.)
+- Interactive mode switching via web interface
+- Complex JSON processing (replaced with simple string concatenation)
+- Debug output and verbose error messages
+- Real-time auto-refresh (now manual refresh + 5-second intervals)
+
+**Result:** Significantly reduced memory usage and improved stability, especially important when running alongside BLE interface.
 
 ### Mobile Compatibility
 
-The interface is fully responsive and optimized for mobile devices, making it perfect for:
-- Handlebar-mounted smartphones or tablets
+The minimal interface is optimized for:
 - Quick status checks during rides
-- Remote monitoring and diagnostics
-- Mode switching without physical buttons
+- Handlebar-mounted devices with limited screen space
+- Reliable connection even with low signal strength
+- Fast loading on slower mobile connections
 
 ## BLE (Bluetooth Low Energy) Interface
 

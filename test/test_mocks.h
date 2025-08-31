@@ -53,7 +53,7 @@ T abs(T value) {
 
 // E-bike controller constants (copied from ebike_controller.h)
 #define NUM_SPEED_POINTS 6
-#define TORQUE_STANDSTILL 2880
+#define TORQUE_STANDSTILL_DEFAULT 2880  // Default standstill for tests
 #define TORQUE_MAX_FORWARD 4095
 #define TORQUE_MAX_BACKWARD 0
 #define TORQUE_MAX_NM 300.0
@@ -83,5 +83,10 @@ void update_vesc_data();
 void update_battery_status();
 void update_battery_led();
 void update_debug_simulation();
+
+// Mock variables for torque calibration (for testing)
+extern int torque_standstill_calibrated;
+extern bool torque_calibration_complete;
+extern int torque_calibration_count;
 
 #endif // TEST_MOCKS_H

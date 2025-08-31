@@ -32,11 +32,16 @@
 
 // Torque sensor calibration (corrected values after GND connection)
 #define TORQUE_SENSOR_PIN   36     // Analog pin for torque sensor on ESP32 (ADC1_CH0, SVP)
-#define TORQUE_STANDSTILL   2055   // ADC value at neutral position (ESP32: 12-bit ADC = 0-4095, 3.3V)
+#define TORQUE_STANDSTILL_DEFAULT 2055  // Default ADC value at neutral position (ESP32: 12-bit ADC = 0-4095, 3.3V)
 #define TORQUE_MAX_FORWARD  4095   // ADC value at maximum forward torque
 #define TORQUE_MAX_BACKWARD 0      // ADC value at maximum backward torque  
 #define TORQUE_MAX_NM       300.0  // Maximum torque [Nm] - Updated based on 60kg@175mm test (103Nm real)
 #define TORQUE_THRESHOLD    20     // Minimum deviation from standstill for valid signal (~3Nm sensitivity)
+
+// Torque sensor calibration settings
+#define TORQUE_CALIBRATION_SAMPLES  20     // Number of samples for calibration
+#define TORQUE_CALIBRATION_DELAY_MS 50     // Delay between calibration samples [ms]
+#define TORQUE_CALIBRATION_TIMEOUT_MS 5000 // Maximum calibration time [ms]
 
 // PAS sensor configuration
 #define PAS_PULSES_PER_REV  8      // 8 Pulses per revolution on each pin (corrected)
@@ -191,6 +196,11 @@ extern int raw_torque_value;          // Raw ADC value (0-1023)
 extern float crank_torque_nm;         // Torque [Nm]
 extern float filtered_torque;         // Filtered torque
 
+// Torque sensor calibration variables
+extern int torque_standstill_calibrated;   // Calibrated neutral position value
+extern bool torque_calibration_complete;   // Calibration status flag
+extern int torque_calibration_count;       // Current calibration sample count
+
 // Speed and assist
 extern float current_speed_kmh;       // Current speed [km/h]
 extern float current_motor_rpm;       // Current motor RPM (for motor current calculation)
@@ -282,6 +292,10 @@ void read_pas_sensors();
 void pas_interrupt_handler();      // Interrupt handler for PAS sensors (ESP32 doesn't need IRAM_ATTR by default)
 void update_cadence();
 void update_torque();
+
+// Torque sensor calibration functions
+void calibrate_torque_sensor();    // Perform initial torque sensor calibration
+bool is_torque_calibration_complete(); // Check if calibration is finished
 
 // VESC communication
 void update_vesc_data();

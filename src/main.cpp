@@ -207,8 +207,8 @@ void vescTask(void *pvParameters) {
     
     // Debug output every 3 seconds
     if (millis() - last_status > 3000) {
-      Serial.printf("[VESC] Task alive - Speed: %.1f km/h, Data valid: %s, Loop count: %d, Battery: %.1fV (%.0f%%)\n", 
-                   current_speed_kmh, vesc_data_valid ? "YES" : "NO", loopCounter, battery_voltage, battery_percentage);
+      Serial.printf("[VESC] Task alive - Speed: %.1f km/h, Data valid: %s, Loop count: %d, Battery: %.1fV (%.2f%%)\n", 
+           current_speed_kmh, vesc_data_valid ? "YES" : "NO", loopCounter, battery_voltage, battery_percentage);
       last_status = millis();
     }
     

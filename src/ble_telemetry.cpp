@@ -122,33 +122,53 @@ void EBikeCommandCallbacks::onWrite(BLECharacteristic* pCharacteristic) {
 
 // Update BLE telemetry data
 void updateBLETelemetryData() {
-  if (!bleDeviceConnected) return;
-  
   if (xSemaphoreTake(dataUpdateSemaphore, pdMS_TO_TICKS(10)) == pdTRUE) {
-    // Speed characteristic (4 bytes float)
-    float speed = sharedVescData.speed_kmh;
-    pCharSpeed->setValue((uint8_t*)&speed, 4);
-    pCharSpeed->notify();
+    // Debug output to verify data
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Updating data - Speed: %.1f km/h, Battery: %.1fV (%.0f%%), Torque: %.1f Nm (shared: %.1f)\n", 
+                    sharedVescData.speed_kmh, sharedVescData.battery_voltage, 
+                    sharedVescData.battery_percentage, sharedSensorData.filtered_torque, sharedSensorData.torque_nm);
+    }
     
-    // Cadence characteristic (4 bytes float)
-    float cadence = sharedSensorData.cadence_rpm;
-    pCharCadence->setValue((uint8_t*)&cadence, 4);
-    pCharCadence->notify();
+    // Speed characteristic (2 bytes uint16 - speed in 0.1 km/h units)
+    uint16_t speed = (uint16_t)(sharedVescData.speed_kmh * 10.0f); // 0.1 km/h precision
+    pCharSpeed->setValue((uint8_t*)&speed, 2);
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Speed set to %.1f km/h (uint16: %d)\n", sharedVescData.speed_kmh, speed);
+      pCharSpeed->notify();
+    }
     
-    // Torque characteristic (4 bytes float)
-    float torque = sharedSensorData.filtered_torque;
-    pCharTorque->setValue((uint8_t*)&torque, 4);
-    pCharTorque->notify();
+    // Cadence characteristic (1 byte uint8 - RPM directly)
+    uint8_t cadence = (uint8_t)constrain(sharedSensorData.cadence_rpm, 0, 255);
+    pCharCadence->setValue(&cadence, 1);
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Cadence set to %.1f RPM (uint8: %d)\n", sharedSensorData.cadence_rpm, cadence);
+      pCharCadence->notify();
+    }
+    
+    // Torque characteristic (2 bytes uint16 - torque in 0.01 Nm units)
+    uint16_t torque = (uint16_t)(sharedSensorData.filtered_torque * 100.0f); // 0.01 Nm precision
+    pCharTorque->setValue((uint8_t*)&torque, 2);
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Torque set to %.2f Nm (uint16: %d)\n", sharedSensorData.filtered_torque, torque);
+      pCharTorque->notify();
+    }
     
     // Battery characteristic (1 byte uint8)
     uint8_t battery = (uint8_t)sharedVescData.battery_percentage;
     pCharBattery->setValue(&battery, 1);
-    pCharBattery->notify();
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Battery set to %d%% (byte value: %d)\n", (int)sharedVescData.battery_percentage, battery);
+      pCharBattery->notify();
+    }
     
-    // Current characteristic (4 bytes float)
-    float current = sharedVescData.actual_current;
-    pCharCurrent->setValue((uint8_t*)&current, 4);
-    pCharCurrent->notify();
+    // Current characteristic (2 bytes uint16 - current in 0.01 A units)
+    uint16_t current = (uint16_t)(abs(sharedVescData.actual_current) * 100.0f); // 0.01 A precision, absolute value
+    pCharCurrent->setValue((uint8_t*)&current, 2);
+    if (bleDeviceConnected) {
+      Serial.printf("BLE: Current set to %.2f A (uint16: %d)\n", sharedVescData.actual_current, current);
+      pCharCurrent->notify();
+    }
     
     // System Status (JSON string)
     JsonDocument statusDoc;
@@ -160,7 +180,7 @@ void updateBLETelemetryData() {
     String statusString;
     serializeJson(statusDoc, statusString);
     pCharSystemStatus->setValue(statusString.c_str());
-    pCharSystemStatus->notify();
+    if (bleDeviceConnected) pCharSystemStatus->notify();
     
     xSemaphoreGive(dataUpdateSemaphore);
   }
@@ -168,8 +188,6 @@ void updateBLETelemetryData() {
 
 // Update BLE VESC data
 void updateBLEVescData() {
-  if (!bleDeviceConnected) return;
-  
   if (xSemaphoreTake(dataUpdateSemaphore, pdMS_TO_TICKS(10)) == pdTRUE) {
     // VESC Data (JSON string für kompakte Übertragung)
     JsonDocument vescDoc;
@@ -184,7 +202,7 @@ void updateBLEVescData() {
     String vescString;
     serializeJson(vescDoc, vescString);
     pCharVescData->setValue(vescString.c_str());
-    pCharVescData->notify();
+    if (bleDeviceConnected) pCharVescData->notify();
     
     xSemaphoreGive(dataUpdateSemaphore);
   }
@@ -192,8 +210,6 @@ void updateBLEVescData() {
 
 // Send available modes list
 void sendBLEModeList() {
-  if (!bleDeviceConnected) return;
-  
   JsonDocument modesDoc;
   JsonArray modesArray = modesDoc["modes"].to<JsonArray>();
   
@@ -208,7 +224,7 @@ void sendBLEModeList() {
   String modesString;
   serializeJson(modesDoc, modesString);
   pCharModeList->setValue(modesString.c_str());
-  pCharModeList->notify();
+  if (bleDeviceConnected) pCharModeList->notify();
 }
 
 // BLE Task main function
@@ -325,6 +341,17 @@ void bleTelemetryTask(void *pvParameters) {
   pTelemetryService->start();
   pControlService->start();
   
+  // Set initial values for characteristics
+  uint16_t initialUint16 = 0;
+  uint8_t initialUint8 = 0;
+  pCharSpeed->setValue((uint8_t*)&initialUint16, 2);
+  pCharCadence->setValue(&initialUint8, 1);
+  pCharTorque->setValue((uint8_t*)&initialUint16, 2);
+  pCharBattery->setValue(&initialUint8, 1);
+  pCharCurrent->setValue((uint8_t*)&initialUint16, 2);
+  pCharVescData->setValue("{}");
+  pCharSystemStatus->setValue("{}");
+  
   // Set initial mode list
   sendBLEModeList();
   
@@ -342,8 +369,17 @@ void bleTelemetryTask(void *pvParameters) {
   
   // Main task loop
   TickType_t xLastWakeTime = xTaskGetTickCount();
+  uint32_t loopCounter = 0;
   
   while (1) {
+    loopCounter++;
+    
+    // Debug output every 10 loops to verify task is running
+    if (loopCounter % 10 == 0) {
+      Serial.printf("BLE: Task alive - Loop: %lu, Connected: %s\n", 
+                    loopCounter, bleDeviceConnected ? "YES" : "NO");
+    }
+    
     // Handle connection state changes
     if (!bleDeviceConnected && bleOldDeviceConnected) {
       // Device disconnected
@@ -358,11 +394,9 @@ void bleTelemetryTask(void *pvParameters) {
       bleOldDeviceConnected = bleDeviceConnected;
     }
     
-    // Update telemetry data if connected
-    if (bleDeviceConnected) {
-      updateBLETelemetryData();
-      updateBLEVescData();
-    }
+    // Update telemetry data (always, not just when connected)
+    updateBLETelemetryData();
+    updateBLEVescData();
     
     // Wait for next update cycle
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BLE_UPDATE_RATE_MS));

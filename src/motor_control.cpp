@@ -64,11 +64,11 @@ void update_motor_status() {
     addLogMessage("WARNING: Motor stopped - excessive cadence (" + String(current_cadence_rpm) + " RPM)");
   }
   
-  if (abs(raw_torque_value - TORQUE_STANDSTILL) < TORQUE_THRESHOLD) {  // No torque detected
+  if (abs(raw_torque_value - torque_standstill_calibrated) < TORQUE_THRESHOLD) {  // No torque detected
     motor_enabled = false;
     // if (now - last_motor_debug < 100) { // Only log occasionally
     // Serial.printf("MOTOR: Disabled - torque below threshold (Raw: %d, Standstill: %d, Threshold: %d)\n", 
-    //  raw_torque_value, TORQUE_STANDSTILL, TORQUE_THRESHOLD);
+    //  raw_torque_value, torque_standstill_calibrated, TORQUE_THRESHOLD);
     // }
 
   }
