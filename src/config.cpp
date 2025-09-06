@@ -6,7 +6,7 @@
 // =============================================================================
 
 // WiFi Web Interface - set to true to enable
-bool enable_wifi_telemetry = true;     // Set to true to enable WiFi Web Interface
+bool enable_wifi_telemetry = false;     // Set to true to enable WiFi Web Interface
 
 // BLE (Bluetooth Low Energy) Interface - set to true to enable
 bool enable_ble_telemetry = true;      // Set to true to enable BLE Interface
@@ -29,25 +29,38 @@ float SPEED_POINTS_KMH[NUM_SPEED_POINTS] = {0, 5, 10, 15, 20, 30};
 AssistProfile AVAILABLE_PROFILES[] = {
   {
     "Linear", 
-    "linear profile", 
+    "Linear power", 
     true,
-    {1, 1, 1, 1, 1, 1}
+    {2.0, 1.5, 1.2, 1.0, 1.0, 1.0}  // IMPROVED: Higher assist at low speeds for better start-up
   },
   {
     "Touring Eco", 
-    "Like Touring but ~40% reduced for better range and efficiency", 
+    "Eco touring", 
     true,
     {1.8, 1.2, 1.0, 0.8, 0.7, 0.5}
-  }
+  },
 
 
   // Uncomment the profiles you want to use:
-  // {
-  //   "No Assist", 
-  //   "No motor assistance", 
-  //   false,
-  //   {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
-  // },
+  {
+    "No Assist", 
+    "No assist", 
+    false,
+    {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+  },
+
+  {
+    "Low Assist", 
+    "Low power", 
+    false,
+    {0.2, 0.2, 0.2, 0.2, 0.2, 0.2}
+  },
+  {
+    "High Assist", 
+    "High power", 
+    false,
+    {10.0, 10.0, 10.0, 10.0, 10.0, 10.0}
+  },
   
   // /*{
   //   "Touring", 
@@ -63,12 +76,12 @@ AssistProfile AVAILABLE_PROFILES[] = {
     {2.0, 1.6, 0.5, 0.8, 1.2, 1.0}
   },*/
   
-  /*{
-    "Urban", 
-    "Optimized for start-stop traffic, full power for traffic light starts", 
-    false,
-    {2.9, 1.5, 0.75, 1.0, 1.2, 0.9}
-  },*/
+   {
+     "Urban", 
+     "City riding", 
+     false,
+     {2.9, 1.5, 0.7, 1.0, 1.2, 0.9}
+   },
   
   /*{
     "Speed", 
@@ -85,12 +98,12 @@ AssistProfile AVAILABLE_PROFILES[] = {
     {2.9, 1.5, 0.75, 1.0, 1.2, 0.9}
   },*/
   
-  /*{
-    "No Assist + Light", 
-    "No motor assistance but with automatic light", 
-    true,
-    {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
-  }*/
+  // {
+  //   "No Assist + Light", 
+  //   "No motor assistance but with automatic light", 
+  //   true,
+  //   {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+  // }
 };
 
 // Calculate number of active profiles at compile time

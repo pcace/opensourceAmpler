@@ -35,7 +35,7 @@
 #define TORQUE_STANDSTILL_DEFAULT 2055  // Default ADC value at neutral position (ESP32: 12-bit ADC = 0-4095, 3.3V)
 #define TORQUE_MAX_FORWARD  4095   // ADC value at maximum forward torque
 #define TORQUE_MAX_BACKWARD 0      // ADC value at maximum backward torque  
-#define TORQUE_MAX_NM       300.0  // Maximum torque [Nm] - Updated based on 60kg@175mm test (103Nm real)
+#define TORQUE_MAX_NM       100.0  // Maximum torque [Nm] - Based on 100kg test (87Nm real) with safety margin
 #define TORQUE_THRESHOLD    20     // Minimum deviation from standstill for valid signal (~3Nm sensitivity)
 
 // Torque sensor calibration settings
@@ -44,10 +44,9 @@
 #define TORQUE_CALIBRATION_TIMEOUT_MS 5000 // Maximum calibration time [ms]
 
 // PAS sensor configuration
-#define PAS_PULSES_PER_REV  8      // 8 Pulses per revolution on each pin (corrected)
 #define CADENCE_WINDOW_MS   1000   // Time window for cadence calculation [ms]
 #define PEDAL_TIMEOUT_MS    1000   // Max. time without pedal activity [ms]
-#define MODE_SWITCH_STEPS   3      // Number of reverse steps for mode switching
+#define MODE_SWITCH_STEPS   32      // Number of reverse steps for mode switching
 
 // Speed-dependent assist configuration
 #define NUM_SPEED_POINTS    6      // Number of speed interpolation points
@@ -63,7 +62,6 @@
 // VESC uses Hardware UART2: RX=GPIO16 (RX2), TX=GPIO17 (TX2)
 
 // Ramping/Smoothing constants
-#define CURRENT_RAMP_RATE   2.0    // A/s - Current rise rate
 #define CURRENT_FILTER      0.8    // Low-pass filter (0.0-1.0, higher = slower)
 
 // Motor parameters for Q100C (from Motor.md)
@@ -77,8 +75,6 @@
 // Max torque: 20.04 Nm @ 13.37 A → K_t = 1.50 Nm/A
 // Average motor constant: K_t ≈ 1.43 Nm/A
 #define MOTOR_CONSTANT_KT   1.43   // Torque constant [Nm/A] - from Q100C performance data
-#define MOTOR_NOMINAL_WHEEL_RPM_36V  201  // Q100C nominal wheel RPM at 36V
-#define MOTOR_NOMINAL_WHEEL_RPM_48V  268  // Q100C nominal wheel RPM at 48V (201×48/36)
 
 // =============================================================================
 // FREERTOS MULTI-CORE DECLARATIONS
@@ -285,6 +281,7 @@ void vescTask(void *pvParameters);
 
 // Initialization
 void ebike_setup();
+void startup_battery_indicator();     // Show battery level at startup
 void initializeAssistProfiles(); // Initialize assist profiles from active configuration
 
 // Sensor functions

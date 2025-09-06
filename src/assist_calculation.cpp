@@ -97,25 +97,22 @@ void calculate_assist_power() {
   // Therefore: I_motor = P_mech / (K_t × ω)
   
   if (assist_power_watts > 0 && current_motor_rpm > 10.0) {
-    // Use motor RPM for correct motor current calculation
-    // Approximate motor constant for Q100C motor (empirically determined)
-    // This ensures constant mechanical power regardless of speed
-    float motor_rps = current_motor_rpm / 60.0;  // Convert RPM to RPS
-    float motor_omega = motor_rps * 2.0 * PI;     // Angular velocity [rad/s]
+    // CORRECTED: Use wheel/output RPM for power calculation, not rotor RPM!
+    // The motor current creates torque at the rotor, but mechanical power is 
+    // delivered at the wheel (output) after gear reduction.
+    float wheel_rpm = current_motor_rpm / MOTOR_GEAR_RATIO;  // Convert rotor RPM to wheel RPM
+    float wheel_rps = wheel_rpm / 60.0;                      // Convert to RPS
+    float wheel_omega = wheel_rps * 2.0 * PI;                // Angular velocity [rad/s]
     
-    // Motor constant for Q100C (defined in ebike_controller.h)
-    // Based on real performance curve data from Q100C motor:
-    // Max efficiency: 7.17 Nm @ 5.28 A → K_t = 1.36 Nm/A
-    // Max torque: 20.04 Nm @ 13.37 A → K_t = 1.50 Nm/A
-    // Average: K_t = 1.43 Nm/A (much more accurate than calculated estimate)
+    // Motor constant K_t relates electrical current to mechanical torque at output
     float motor_constant_kt = MOTOR_CONSTANT_KT;
     
-    target_current_amps = assist_power_watts / (motor_constant_kt * motor_omega);
+    target_current_amps = assist_power_watts / (motor_constant_kt * wheel_omega);
     
   } else if (assist_power_watts > 0 && current_motor_rpm <= 10.0) {
-    // Low speed: Use simplified calculation (avoid division by near-zero)
-    // At very low speeds, use voltage-based calculation as fallback
-    target_current_amps = assist_power_watts / VOLTAGE_BATTERY;
+    // IMPROVED: Better low speed support with higher current for start-up assistance
+    // Use more aggressive current calculation at very low speeds
+    target_current_amps = (assist_power_watts / VOLTAGE_BATTERY) * 2.0;  // Double current for start-up
     
   } else {
     target_current_amps = 0.0;

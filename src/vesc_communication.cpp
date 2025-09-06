@@ -48,17 +48,18 @@ void update_vesc_data() {
     vesc_data_valid = true;
     last_vesc_data_time = now;
     
-    // Calculate speed from eRPM (ELEGANT SOLUTION!)
+    // Calculate speed from eRPM (CORRECTED FOR Q100C NABENMOTOR!)
     float erpm = vescUart.data.rpm;
     float pole_pairs = MOTOR_POLES / 2.0;           // 16 poles = 8 pole pairs
     
-    // eRPM → motor revolutions → wheel revolutions → speed
-    float motor_rpm = erpm / pole_pairs;
-    current_motor_rpm = motor_rpm;
-    float wheel_rpm = motor_rpm / MOTOR_GEAR_RATIO;
+    // Q100C is a geared hub motor: eRPM → rotor RPM → wheel RPM → speed
+    // The gear ratio is INSIDE the motor hub, reducing rotor speed to wheel speed
+    float rotor_rpm = erpm / pole_pairs;           // Rotor RPM (high speed)
+    current_motor_rpm = rotor_rpm;                 // Store rotor RPM for power calculation
+    float wheel_rpm = rotor_rpm / MOTOR_GEAR_RATIO; // Wheel RPM (low speed, after gear reduction)
     float wheel_circumference_m = PI * WHEEL_DIAMETER_M;
     
-    // km/h = (revolutions/min) × (circumference in m) × (60 min/h) × (1 km/1000m)
+    // km/h = (wheel_revolutions/min) × (circumference in m) × (60 min/h) × (1 km/1000m)
     current_speed_kmh = wheel_rpm * wheel_circumference_m * 0.06; // 60/1000
     
     // Plausibility check (E-bikes don't go over 50 km/h)

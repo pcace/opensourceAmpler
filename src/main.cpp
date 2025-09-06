@@ -121,15 +121,15 @@ void sensorTask(void *pvParameters) {
     if (abs(current_cadence_rpm - last_cadence) > 2.0 || 
         (current_cadence_rpm > 0 && millis() - last_pas_debug > 1000)) {
       if (current_cadence_rpm > 0) {
-        Serial.printf("[PAS] Pedaling detected! Cadence: %.1f RPM, Direction: %s, Position: %d\n",
-                     current_cadence_rpm, 
-                     pedal_direction == 1 ? "FORWARD" : (pedal_direction == -1 ? "REVERSE" : "STOPPED"),
-                     pos);
+        // Serial.printf("[PAS] Pedaling detected! Cadence: %.1f RPM, Direction: %s, Position: %d\n",
+        //              current_cadence_rpm, 
+        //              pedal_direction == 1 ? "FORWARD" : (pedal_direction == -1 ? "REVERSE" : "STOPPED"),
+        //              pos);
         last_pas_debug = millis();
         last_cadence = current_cadence_rpm;
       }
     } else if (current_cadence_rpm == 0 && last_cadence > 0) {
-      Serial.println("[PAS] Pedaling stopped");
+      // Serial.println("[PAS] Pedaling stopped");
       last_cadence = 0.0;
     }
     

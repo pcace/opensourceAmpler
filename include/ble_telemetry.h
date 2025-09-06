@@ -22,6 +22,7 @@
 
 // BLE Service UUIDs (Custom UUIDs for E-Bike Controller)
 #define BLE_SERVICE_UUID_TELEMETRY     "12345678-1234-1234-1234-123456789ABC"
+#define BLE_SERVICE_UUID_EXTENDED      "12345678-1234-1234-1234-123456789E1D"  // Fixed: Match mobile app expectation
 #define BLE_SERVICE_UUID_CONTROL       "12345678-1234-1234-1234-123456789DEF"
 #define BLE_SERVICE_UUID_DEVICE_INFO   "180A"  // Standard Device Information Service
 
@@ -49,7 +50,7 @@
 
 // BLE Task Configuration
 #define BLE_UPDATE_RATE_MS 2000         // 0.5Hz für BLE Telemetrie (weniger frequent als WiFi)
-#define BLE_TASK_STACK_SIZE 4096
+#define BLE_TASK_STACK_SIZE 12288       // Increased from 8192 to 12288 to prevent stack overflow
 #define BLE_TASK_PRIORITY 1             // Niedrige Priorität auf Core 1
 
 // BLE Data Structures
@@ -133,6 +134,12 @@ extern TaskHandle_t bleTaskHandle;
 extern BLEServer* pBLEServer;
 extern bool bleDeviceConnected;
 extern bool bleOldDeviceConnected;
+
+// BLE Services
+extern BLEService* pTelemetryService;
+extern BLEService* pExtendedService;
+extern BLEService* pControlService;
+extern BLEService* pDeviceInfoService;
 
 // BLE Characteristics (global for access from callbacks)
 extern BLECharacteristic* pCharSpeed;

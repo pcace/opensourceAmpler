@@ -29,8 +29,8 @@ void update_motor_status() {
   
   // Motor activation based on multiple criteria:
   bool pas_active = (now - last_pedal_activity) < PEDAL_TIMEOUT_MS;
-  bool torque_present = abs(filtered_torque) > 0.2;  // Minimum torque 1 Nm (absolute value)
-  bool cadence_valid = current_cadence_rpm > 2.0; // Minimum cadence 5 RPM
+  bool torque_present = abs(filtered_torque) > 0.1;  // REDUCED: Minimum torque 0.5 Nm for better start-up
+  bool cadence_valid = current_cadence_rpm > 1.0; // REDUCED: Minimum cadence 2 RPM for better start-up
   bool mode_allows_assist = (current_mode >= 0 && current_mode < NUM_ACTIVE_PROFILES); // FIXED: Include mode 0
   bool forward_pedaling = pedal_direction > 0; // Only forward pedaling
   
