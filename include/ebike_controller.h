@@ -19,7 +19,7 @@
 // Hardware-specific constants
 #define VOLTAGE_BATTERY     48.0   // Battery voltage [V] (48V 13S2P)
 #define MAX_MOTOR_POWER     350.0  // Q100C motor rated power [W]
-#define MAX_MOTOR_CURRENT   8.0    // Maximum motor current for Q100C [A]
+#define MAX_MOTOR_CURRENT   15.0    // Maximum motor current for Q100C [A]
 #define MIN_MOTOR_CURRENT   0.1    // Minimum motor current [A]
 
 // Battery monitoring configuration
@@ -60,9 +60,6 @@
 #define BATTERY_LED_PIN    4       // GPIO4 - Battery status LED pin
 #define WHEEL_SPEED_PIN    5       // GPIO5 - Wheel speed sensor (future use, interrupt capable)
 // VESC uses Hardware UART2: RX=GPIO16 (RX2), TX=GPIO17 (TX2)
-
-// Ramping/Smoothing constants
-#define CURRENT_FILTER      0.8    // Low-pass filter (0.0-1.0, higher = slower)
 
 // Motor parameters for Q100C (from Motor.md)
 #define MOTOR_GEAR_RATIO    14.2   // Q100C gear ratio

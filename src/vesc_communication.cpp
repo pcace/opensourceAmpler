@@ -89,7 +89,7 @@ void update_vesc_data() {
       
       // Extended data
       sharedVescData.rpm = erpm_raw;
-      sharedVescData.duty_cycle = duty_cycle_raw * 100.0; // Convert to percentage
+      sharedVescData.duty_cycle = duty_cycle_raw;
       sharedVescData.temp_mosfet = temp_mosfet_raw;
       sharedVescData.temp_motor = temp_motor_raw;
       sharedVescData.amp_hours = amp_hours_raw;

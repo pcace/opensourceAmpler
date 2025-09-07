@@ -56,10 +56,16 @@ AssistProfile AVAILABLE_PROFILES[] = {
     {0.2, 0.2, 0.2, 0.2, 0.2, 0.2}
   },
   {
-    "High Assist", 
-    "High power", 
+    "10 Assist", 
+    "10 power", 
     false,
     {10.0, 10.0, 10.0, 10.0, 10.0, 10.0}
+  },
+  {
+    "100 Assist", 
+    "100 power", 
+    false,
+    {100.0, 100.0, 100.0, 100.0, 100.0, 100.0}
   },
   
   // /*{
