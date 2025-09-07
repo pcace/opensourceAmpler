@@ -42,6 +42,9 @@
 // BLE (Bluetooth Low Energy) Interface Integration
 #include "ble_telemetry.h"
 
+// VESC Bridge Mode Integration
+#include "vesc_bridge.h"
+
 // ESP32 FreeRTOS Includes (native ESP32 Framework)
 #ifdef ESP32
   #include "freertos/FreeRTOS.h"
@@ -266,6 +269,34 @@ void setup() {
   // Enable debug serial (USB Serial)
   Serial.begin(115200);
   Serial.println("Starting Multi-Core E-Bike Controller (ESP32 DevKit v1)...");
+  
+  // =============================================================================
+  // VESC BRIDGE MODE CHECK (PRIORITY 1)
+  // =============================================================================
+  if (vesc_bridge_mode) {
+    Serial.println("===========================================");
+    Serial.println("    VESC BRIDGE MODE ACTIVATED!");
+    Serial.println("===========================================");
+    Serial.println("Normal e-bike controller is DISABLED.");
+    Serial.println("ESP32 will act as transparent VESC bridge.");
+    Serial.println();
+    
+    // Initialize bridge mode and enter main loop
+    initVescBridge();
+    
+    // Bridge mode main loop (never returns)
+    while (true) {
+      runVescBridge();
+    }
+    
+    // This point should never be reached
+    Serial.println("ERROR: Bridge mode unexpectedly exited!");
+    return;
+  }
+  
+  // =============================================================================
+  // NORMAL E-BIKE CONTROLLER SETUP
+  // =============================================================================
   Serial.println("Architecture: FreeRTOS Dual-Core");
   Serial.println("  - Core 0: Sensor Processing (HIGH PRIORITY, 100Hz)");
   Serial.println("  - Core 1: VESC Communication (LOWER PRIORITY, 20Hz)");

@@ -136,6 +136,9 @@ extern bool enable_wifi_telemetry;      // Enable WiFi Web Interface with loggin
 // BLE Interface - enable to get Bluetooth Low Energy monitoring
 extern bool enable_ble_telemetry;       // Enable BLE Interface with telemetry
 
+// VESC Bridge Mode - enable to use ESP32 as direct VESC access bridge
+extern bool vesc_bridge_mode;           // Enable VESC Bridge Mode (disables e-bike controller)
+
 // =============================================================================
 // GLOBAL VARIABLES
 // =============================================================================
@@ -315,5 +318,14 @@ void print_debug_info();
 void update_debug_simulation();            // Update debug simulation values
 void update_systematic_test_simulation(unsigned long now);  // Systematic test mode
 void update_smooth_cycle_simulation(unsigned long now);     // Smooth cycle mode
+
+// =============================================================================
+// VESC BRIDGE MODE DECLARATIONS
+// =============================================================================
+
+// VESC Bridge Mode functions (defined in vesc_bridge.cpp)
+void initVescBridge();
+void runVescBridge();
+void shutdownVescBridge();
 
 #endif // EBIKE_CONTROLLER_H
